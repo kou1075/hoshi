@@ -168,15 +168,19 @@ function bindEvents() {
 
   document.getElementById("allInBtn").onclick = allIn;
   document.getElementById("allOutBtn").onclick = allOut;
+
   document.getElementById("cost3Btn").onclick = function() {
     onlyCost("3.0");
   };
+
   document.getElementById("cost25Btn").onclick = function() {
     onlyCost("2.5");
   };
+
   document.getElementById("cost2Btn").onclick = function() {
     onlyCost("2.0");
   };
+
   document.getElementById("cost15Btn").onclick = function() {
     onlyCost("1.5");
   };
@@ -274,7 +278,8 @@ function renderCards() {
       '<div class="badge-row">' +
         '<span class="badge">' + (enabled[character.name] ? "IN" : "OUT") + '</span>' +
         (favorites[character.name] ? '<span class="badge favorite">★</span>' : '') +
-      '</div>';
+      '</div>' +
+      '<button class="delete-btn" type="button">削除</button>';
 
     card.onclick = function() {
       enabled[character.name] = !enabled[character.name];
@@ -289,6 +294,13 @@ function renderCards() {
       favorites[character.name] = !favorites[character.name];
       saveData();
       renderAll();
+    };
+
+    const deleteButton = card.querySelector(".delete-btn");
+
+    deleteButton.onclick = function(event) {
+      event.stopPropagation();
+      deleteCharacter(character.name);
     };
 
     cardsElement.appendChild(card);
@@ -505,6 +517,34 @@ function addCharacter() {
 
   addNameInput.value = "";
   addCostInput.value = "2.5";
+
+  saveData();
+  renderAll();
+}
+
+function deleteCharacter(name) {
+  const answer = confirm(
+    name + " を削除しますか？\n\nこの操作はこのブラウザの保存データから削除されます。"
+  );
+
+  if (!answer) {
+    return;
+  }
+
+  characters = characters.filter(function(character) {
+    return character.name !== name;
+  });
+
+  delete enabled[name];
+  delete favorites[name];
+
+  historyList = historyList.filter(function(item) {
+    return item.names.indexOf(name) === -1;
+  });
+
+  if (lastPickNames.indexOf(name) !== -1) {
+    lastPickNames = [];
+  }
 
   saveData();
   renderAll();
