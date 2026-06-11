@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>星の翼 ランダムキャラピック</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -12,7 +12,7 @@
   <button id="themeBtn" class="theme-btn">☾</button>
 
   <h1>星の翼 ランダムキャラピック</h1>
-  <p class="subtitle">キャラを押すと抽選対象の IN / OUT を切り替えできます。</p>
+  <p class="subtitle">キャラを押すと抽選対象の IN / OUT、★でお気に入り</p>
 
   <div class="result-box">
     <div class="result-label">抽選結果</div>
@@ -61,7 +61,7 @@
 
       <label class="check-card">
         <input type="checkbox" id="avoidRecent">
-        直近の履歴を避ける
+        直近履歴を避ける
       </label>
     </div>
 
@@ -96,6 +96,27 @@
     <div id="status" class="status"></div>
   </section>
 
+  <section class="panel add-panel">
+    <details>
+      <summary>キャラクター追加</summary>
+
+      <div class="add-grid">
+        <input id="addNameInput" type="text" placeholder="キャラ名">
+
+        <select id="addCostInput">
+          <option value="3.0">Cost 3.0</option>
+          <option value="2.5" selected>Cost 2.5</option>
+          <option value="2.0">Cost 2.0</option>
+          <option value="1.5">Cost 1.5</option>
+        </select>
+
+        <button id="addCharacterBtn" class="btn green">追加</button>
+      </div>
+
+      <p class="hint">追加したキャラはこのブラウザに保存されます。</p>
+    </details>
+  </section>
+
   <section id="cards" class="cards"></section>
 
   <section class="history-box">
@@ -105,6 +126,6 @@
 
 </main>
 
-<script src="script.js"></script>
+<script src="script.js?v=9"></script>
 </body>
 </html>
