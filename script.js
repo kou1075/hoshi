@@ -1,4 +1,6 @@
-const characters = [
+const STORAGE_KEY = "hoshiRandomPickerV2";
+
+const defaultCharacters = [
   { name: "グリフィン", cost: "3.0" },
   { name: "ヒカリ", cost: "3.0" },
   { name: "エルフィン", cost: "3.0" },
@@ -74,90 +76,431 @@ const characters = [
   { name: "ヤミン", cost: "1.5" }
 ];
 
-const enabled = {};
-const historyList = [];
-let lastPick = null;
+let characters = [];
+let enabled = {};
+let favorites = {};
+let historyList = [];
+let lastPickNames = [];
+let editingName = null;
+let themeIndex = 0;
 
-characters.forEach((character) => {
-  enabled[character.name] = true;
-});
+const themes = ["", "light", "neon"];
 
+const resultText = document.getElementById("resultText");
 const cardsElement = document.getElementById("cards");
-const resultElement = document.getElementById("result");
 const statusElement = document.getElementById("status");
+const costStatsElement = document.getElementById("costStats");
 const historyElement = document.getElementById("history");
+const toastElement = document.getElementById("toast");
+
 const searchBox = document.getElementById("searchBox");
+const costFilter = document.getElementById("costFilter");
+const showFilter = document.getElementById("showFilter");
+const poolMode = document.getElementById("poolMode");
+const costLimit = document.getElementById("costLimit");
+const avoidHistory = document.getElementById("avoidHistory");
+const noSamePair = document.getElementById("noSamePair");
+
+const charNameInput = document.getElementById("charNameInput");
+const charCostInput = document.getElementById("charCostInput");
+
+function loadData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+    if (saved && Array.isArray(saved.characters)) {
+      characters = saved.characters;
+      enabled = saved.enabled || {};
+      favorites = saved.favorites || {};
+      historyList = saved.historyList || [];
+      themeIndex = saved.themeIndex || 0;
+    } else {
+      resetToDefault(false);
+    }
+  } catch (e) {
+    resetToDefault(false);
+  }
+
+  characters.forEach((character) => {
+    if (enabled[character.name] === undefined) {
+      enabled[character.name] = true;
+    }
+
+    if (favorites[character.name] === undefined) {
+      favorites[character.name] = false;
+    }
+  });
+
+  applyTheme();
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      characters,
+      enabled,
+      favorites,
+      historyList,
+      themeIndex
+    }));
+  } catch (e) {
+    console.log("保存できませんでした", e);
+  }
+}
+
+function resetToDefault(shouldSave = true) {
+  characters = defaultCharacters.map((character) => ({ ...character }));
+  enabled = {};
+  favorites = {};
+  historyList = [];
+  lastPickNames = [];
+  editingName = null;
+
+  characters.forEach((character) => {
+    enabled[character.name] = true;
+    favorites[character.name] = false;
+  });
+
+  if (shouldSave) {
+    saveData();
+  }
+}
+
+function applyTheme() {
+  document.body.className = themes[themeIndex];
+}
+
+function changeTheme() {
+  themeIndex++;
+
+  if (themeIndex >= themes.length) {
+    themeIndex = 0;
+  }
+
+  applyTheme();
+  saveData();
+}
+
+function showToast(message) {
+  toastElement.textContent = message;
+  toastElement.classList.add("show");
+
+  setTimeout(() => {
+    toastElement.classList.remove("show");
+  }, 1800);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getPickMode() {
+  return document.querySelector('input[name="pickMode"]:checked').value;
+}
+
+function costNumber(character) {
+  return Number(character.cost);
+}
+
+function getBasePool() {
+  const mode = poolMode.value;
+  let pool = characters.slice();
+
+  if (mode === "enabled") {
+    pool = pool.filter((character) => enabled[character.name]);
+  }
+
+  if (mode === "favorite") {
+    pool = pool.filter((character) => favorites[character.name]);
+  }
+
+  if (avoidHistory.checked) {
+    const recentNames = historyList
+      .slice(0, 10)
+      .flatMap((item) => {
+        if (item.type === "pair") {
+          return item.names;
+        }
+
+        return [item.name];
+      });
+
+    pool = pool.filter((character) => !recentNames.includes(character.name));
+  }
+
+  return pool;
+}
+
+function randomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function makePairs(pool) {
+  const pairs = [];
+  const limitValue = costLimit.value === "none" ? Infinity : Number(costLimit.value);
+
+  for (let i = 0; i < pool.length; i++) {
+    for (let j = noSamePair.checked ? i + 1 : i; j < pool.length; j++) {
+      if (noSamePair.checked && i === j) {
+        continue;
+      }
+
+      const total = costNumber(pool[i]) + costNumber(pool[j]);
+
+      if (total <= limitValue) {
+        pairs.push([pool[i], pool[j]]);
+      }
+    }
+  }
+
+  return pairs;
+}
 
 function renderCards() {
   const keyword = searchBox.value.trim().toLowerCase();
+  const costValue = costFilter.value;
+  const showValue = showFilter.value;
 
   cardsElement.innerHTML = "";
 
-  const filteredCharacters = characters.filter((character) => {
-    return character.name.toLowerCase().includes(keyword);
-  });
+  const visibleCharacters = characters.filter((character) => {
+    const matchKeyword = character.name.toLowerCase().includes(keyword);
+    const matchCost = costValue === "all" || character.cost === costValue;
 
-  filteredCharacters.forEach((character) => {
-    const card = document.createElement("div");
+    let matchShow = true;
 
-    if (enabled[character.name]) {
-      card.className = "card";
-    } else {
-      card.className = "card out";
+    if (showValue === "in") {
+      matchShow = enabled[character.name];
     }
 
+    if (showValue === "out") {
+      matchShow = !enabled[character.name];
+    }
+
+    if (showValue === "favorite") {
+      matchShow = favorites[character.name];
+    }
+
+    return matchKeyword && matchCost && matchShow;
+  });
+
+  visibleCharacters.forEach((character) => {
+    const card = document.createElement("div");
+    card.className = `card cost-${character.cost.replace(".", "-")} ${enabled[character.name] ? "" : "out"}`;
+
     card.innerHTML = `
-      <div class="name">${character.name}</div>
+      <div class="card-top">
+        <div class="name">${escapeHtml(character.name)}</div>
+        <button class="star-btn" title="お気に入り">${favorites[character.name] ? "★" : "☆"}</button>
+      </div>
+
       <div class="cost">Cost ${character.cost}</div>
-      <div class="badge">${enabled[character.name] ? "IN" : "OUT"}</div>
+
+      <div class="badge-row">
+        <span class="badge inout">${enabled[character.name] ? "IN" : "OUT"}</span>
+        ${favorites[character.name] ? '<span class="badge favorite">★Favorite</span>' : ""}
+      </div>
+
+      <div class="card-actions">
+        <button class="mini-btn toggle">IN/OUT</button>
+        <button class="mini-btn edit">編集</button>
+        <button class="mini-btn delete">削除</button>
+      </div>
     `;
+
+    card.querySelector(".star-btn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      favorites[character.name] = !favorites[character.name];
+      saveData();
+      renderAll();
+    });
+
+    card.querySelector(".toggle").addEventListener("click", (event) => {
+      event.stopPropagation();
+      enabled[character.name] = !enabled[character.name];
+      saveData();
+      renderAll();
+    });
+
+    card.querySelector(".edit").addEventListener("click", (event) => {
+      event.stopPropagation();
+      editingName = character.name;
+      charNameInput.value = character.name;
+      charCostInput.value = character.cost;
+      charNameInput.focus();
+      showToast("編集モードにしました");
+    });
+
+    card.querySelector(".delete").addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteCharacter(character.name);
+    });
 
     card.addEventListener("click", () => {
       enabled[character.name] = !enabled[character.name];
-      renderCards();
+      saveData();
+      renderAll();
     });
 
     cardsElement.appendChild(card);
   });
 
-  const enabledCount = characters.filter((character) => {
-    return enabled[character.name];
-  }).length;
-
-  statusElement.textContent = `抽選対象：${enabledCount} / ${characters.length}人`;
+  renderStatus();
 }
 
-function pickCharacter() {
-  let pool = characters.filter((character) => {
-    return enabled[character.name];
-  });
+function renderStatus() {
+  const enabledCount = characters.filter((character) => enabled[character.name]).length;
+  const favoriteCount = characters.filter((character) => favorites[character.name]).length;
 
-  if (pool.length === 0) {
-    resultElement.textContent = "抽選対象がいません";
+  statusElement.textContent =
+    `抽選対象：${enabledCount} / ${characters.length}人　お気に入り：${favoriteCount}人　表示中：${cardsElement.children.length}人`;
+
+  const costs = ["3.0", "2.5", "2.0", "1.5"];
+
+  costStatsElement.innerHTML = costs.map((cost) => {
+    const total = characters.filter((character) => character.cost === cost).length;
+    const inCount = characters.filter((character) => {
+      return character.cost === cost && enabled[character.name];
+    }).length;
+
+    return `
+      <div class="stat">
+        Cost ${cost}
+        <small>${inCount} / ${total} IN</small>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderHistory() {
+  if (historyList.length === 0) {
+    historyElement.textContent = "なし";
     return;
   }
 
-  // 2人以上いる場合は、直前と同じキャラを出にくくする
-  if (pool.length >= 2 && lastPick !== null) {
-    pool = pool.filter((character) => {
-      return character.name !== lastPick.name;
+  historyElement.innerHTML = historyList.map((item, index) => {
+    if (item.type === "pair") {
+      return `${index + 1}. ${escapeHtml(item.names[0])} + ${escapeHtml(item.names[1])}（合計Cost ${item.totalCost}）`;
+    }
+
+    return `${index + 1}. ${escapeHtml(item.name)}（Cost ${item.cost}）`;
+  }).join("<br>");
+}
+
+function renderAll() {
+  renderCards();
+  renderHistory();
+}
+
+function startRoulette(finalText, callback) {
+  const pool = getBasePool();
+
+  if (pool.length === 0) {
+    resultText.textContent = "抽選対象がいません";
+    return;
+  }
+
+  let count = 0;
+  resultText.classList.add("rolling");
+
+  const timer = setInterval(() => {
+    const temp = randomItem(pool);
+    resultText.textContent = temp.name;
+    count++;
+
+    if (count >= 18) {
+      clearInterval(timer);
+      resultText.textContent = finalText;
+      resultText.classList.remove("rolling");
+      callback();
+    }
+  }, 65);
+}
+
+function pickCharacter() {
+  const mode = getPickMode();
+  const pool = getBasePool();
+
+  if (mode === "single") {
+    pickSingle(pool);
+  } else {
+    pickPair(pool);
+  }
+}
+
+function pickSingle(pool) {
+  if (pool.length === 0) {
+    resultText.textContent = "抽選対象がいません";
+    return;
+  }
+
+  let usablePool = pool;
+
+  if (usablePool.length >= 2 && lastPickNames.length > 0) {
+    const filtered = usablePool.filter((character) => {
+      return !lastPickNames.includes(character.name);
     });
+
+    if (filtered.length > 0) {
+      usablePool = filtered;
+    }
   }
 
-  const randomIndex = Math.floor(Math.random() * pool.length);
-  const chosen = pool[randomIndex];
+  const chosen = randomItem(usablePool);
+  const finalText = `${chosen.name} / Cost ${chosen.cost}`;
 
-  lastPick = chosen;
+  startRoulette(finalText, () => {
+    lastPickNames = [chosen.name];
 
-  resultElement.textContent = `${chosen.name} / Cost ${chosen.cost}`;
+    historyList.unshift({
+      type: "single",
+      name: chosen.name,
+      cost: chosen.cost
+    });
 
-  historyList.unshift(`${chosen.name}（Cost ${chosen.cost}）`);
+    historyList = historyList.slice(0, 20);
+    saveData();
+    renderHistory();
+  });
+}
 
-  if (historyList.length > 10) {
-    historyList.pop();
+function pickPair(pool) {
+  if (pool.length < 2 && noSamePair.checked) {
+    resultText.textContent = "2人抽選には2キャラ以上必要です";
+    return;
   }
 
-  historyElement.textContent = historyList.join(" → ");
+  const pairs = makePairs(pool);
+
+  if (pairs.length === 0) {
+    resultText.textContent = "条件に合う組み合わせがありません";
+    return;
+  }
+
+  const pair = randomItem(pairs);
+  const total = costNumber(pair[0]) + costNumber(pair[1]);
+
+  const finalText =
+    `P1：${pair[0].name} / P2：${pair[1].name} / 合計Cost ${total.toFixed(1)}`;
+
+  startRoulette(finalText, () => {
+    lastPickNames = [pair[0].name, pair[1].name];
+
+    historyList.unshift({
+      type: "pair",
+      names: [pair[0].name, pair[1].name],
+      totalCost: total.toFixed(1)
+    });
+
+    historyList = historyList.slice(0, 20);
+    saveData();
+    renderHistory();
+  });
 }
 
 function allIn() {
@@ -165,7 +508,8 @@ function allIn() {
     enabled[character.name] = true;
   });
 
-  renderCards();
+  saveData();
+  renderAll();
 }
 
 function allOut() {
@@ -173,15 +517,17 @@ function allOut() {
     enabled[character.name] = false;
   });
 
-  renderCards();
+  saveData();
+  renderAll();
 }
 
-function reverse() {
+function reverseInOut() {
   characters.forEach((character) => {
     enabled[character.name] = !enabled[character.name];
   });
 
-  renderCards();
+  saveData();
+  renderAll();
 }
 
 function onlyCost(cost) {
@@ -189,38 +535,235 @@ function onlyCost(cost) {
     enabled[character.name] = character.cost === cost;
   });
 
-  renderCards();
+  saveData();
+  renderAll();
+}
+
+function clearFavorites() {
+  characters.forEach((character) => {
+    favorites[character.name] = false;
+  });
+
+  saveData();
+  renderAll();
 }
 
 function resetHistory() {
-  historyList.length = 0;
-  lastPick = null;
-  historyElement.textContent = "なし";
-  resultElement.textContent = "抽選ボタンを押してね";
+  historyList = [];
+  lastPickNames = [];
+  resultText.textContent = "抽選ボタンを押してね";
+  saveData();
+  renderAll();
+}
+
+function resetData() {
+  if (!confirm("キャラ追加・IN/OUT・お気に入り・履歴を初期化します。いいですか？")) {
+    return;
+  }
+
+  resetToDefault(true);
+  resultText.textContent = "初期化しました";
+  renderAll();
+}
+
+function addOrUpdateCharacter() {
+  const name = charNameInput.value.trim();
+  const cost = charCostInput.value;
+
+  if (name === "") {
+    showToast("キャラ名を入力してください");
+    return;
+  }
+
+  const existing = characters.find((character) => character.name === name);
+
+  if (editingName !== null) {
+    const target = characters.find((character) => character.name === editingName);
+
+    if (target) {
+      const oldName = target.name;
+
+      target.name = name;
+      target.cost = cost;
+
+      enabled[name] = enabled[oldName] ?? true;
+      favorites[name] = favorites[oldName] ?? false;
+
+      if (oldName !== name) {
+        delete enabled[oldName];
+        delete favorites[oldName];
+      }
+
+      historyList = historyList.map((item) => renameHistoryItem(item, oldName, name));
+
+      editingName = null;
+      showToast("更新しました");
+    }
+  } else if (existing) {
+    existing.cost = cost;
+    showToast("同名キャラのCostを更新しました");
+  } else {
+    characters.push({ name, cost });
+    enabled[name] = true;
+    favorites[name] = false;
+    showToast("追加しました");
+  }
+
+  charNameInput.value = "";
+  charCostInput.value = "2.5";
+
+  sortCharacters();
+  saveData();
+  renderAll();
+}
+
+function renameHistoryItem(item, oldName, newName) {
+  if (item.type === "single" && item.name === oldName) {
+    return { ...item, name: newName };
+  }
+
+  if (item.type === "pair") {
+    return {
+      ...item,
+      names: item.names.map((name) => {
+        return name === oldName ? newName : name;
+      })
+    };
+  }
+
+  return item;
+}
+
+function clearEdit() {
+  editingName = null;
+  charNameInput.value = "";
+  charCostInput.value = "2.5";
+}
+
+function deleteCharacter(name) {
+  if (!confirm(`${name} を削除しますか？`)) {
+    return;
+  }
+
+  characters = characters.filter((character) => character.name !== name);
+  delete enabled[name];
+  delete favorites[name];
+
+  historyList = historyList.filter((item) => {
+    if (item.type === "single") {
+      return item.name !== name;
+    }
+
+    return !item.names.includes(name);
+  });
+
+  saveData();
+  renderAll();
+}
+
+function sortCharacters() {
+  const costOrder = {
+    "3.0": 1,
+    "2.5": 2,
+    "2.0": 3,
+    "1.5": 4
+  };
+
+  characters.sort((a, b) => {
+    if (costOrder[a.cost] !== costOrder[b.cost]) {
+      return costOrder[a.cost] - costOrder[b.cost];
+    }
+
+    return a.name.localeCompare(b.name, "ja");
+  });
+}
+
+async function exportSettings() {
+  const data = {
+    characters,
+    enabled,
+    favorites,
+    historyList
+  };
+
+  const text = JSON.stringify(data);
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("設定をコピーしました");
+  } catch (e) {
+    prompt("この設定をコピーしてください", text);
+  }
+}
+
+function importSettings() {
+  const text = prompt("設定データを貼り付けてください");
+
+  if (!text) {
+    return;
+  }
+
+  try {
+    const data = JSON.parse(text);
+
+    if (!Array.isArray(data.characters)) {
+      throw new Error("charactersがありません");
+    }
+
+    characters = data.characters;
+    enabled = data.enabled || {};
+    favorites = data.favorites || {};
+    historyList = data.historyList || [];
+
+    characters.forEach((character) => {
+      if (enabled[character.name] === undefined) {
+        enabled[character.name] = true;
+      }
+
+      if (favorites[character.name] === undefined) {
+        favorites[character.name] = false;
+      }
+    });
+
+    sortCharacters();
+    saveData();
+    renderAll();
+    showToast("設定を読み込みました");
+  } catch (e) {
+    alert("読み込みに失敗しました。設定データを確認してください。");
+  }
 }
 
 document.getElementById("pickBtn").addEventListener("click", pickCharacter);
+document.getElementById("themeBtn").addEventListener("click", changeTheme);
+
 document.getElementById("allInBtn").addEventListener("click", allIn);
 document.getElementById("allOutBtn").addEventListener("click", allOut);
-document.getElementById("reverseBtn").addEventListener("click", reverse);
-document.getElementById("resetBtn").addEventListener("click", resetHistory);
+document.getElementById("reverseBtn").addEventListener("click", reverseInOut);
+document.getElementById("favClearBtn").addEventListener("click", clearFavorites);
 
-document.getElementById("cost3Btn").addEventListener("click", () => {
-  onlyCost("3.0");
-});
+document.getElementById("cost3Btn").addEventListener("click", () => onlyCost("3.0"));
+document.getElementById("cost25Btn").addEventListener("click", () => onlyCost("2.5"));
+document.getElementById("cost2Btn").addEventListener("click", () => onlyCost("2.0"));
+document.getElementById("cost15Btn").addEventListener("click", () => onlyCost("1.5"));
 
-document.getElementById("cost25Btn").addEventListener("click", () => {
-  onlyCost("2.5");
-});
+document.getElementById("historyResetBtn").addEventListener("click", resetHistory);
+document.getElementById("dataResetBtn").addEventListener("click", resetData);
+document.getElementById("exportBtn").addEventListener("click", exportSettings);
+document.getElementById("importBtn").addEventListener("click", importSettings);
 
-document.getElementById("cost2Btn").addEventListener("click", () => {
-  onlyCost("2.0");
-});
-
-document.getElementById("cost15Btn").addEventListener("click", () => {
-  onlyCost("1.5");
-});
+document.getElementById("addCharBtn").addEventListener("click", addOrUpdateCharacter);
+document.getElementById("clearEditBtn").addEventListener("click", clearEdit);
 
 searchBox.addEventListener("input", renderCards);
+costFilter.addEventListener("change", renderCards);
+showFilter.addEventListener("change", renderCards);
 
-renderCards();
+poolMode.addEventListener("change", saveData);
+costLimit.addEventListener("change", saveData);
+avoidHistory.addEventListener("change", saveData);
+noSamePair.addEventListener("change", saveData);
+
+loadData();
+sortCharacters();
+renderAll();
