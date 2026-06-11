@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星の翼 ランダムキャラピック</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>星の翼 ランダムキャラピック</h1>
+    <p class="subtitle">キャラをクリックすると抽選対象の IN / OUT を切り替えできます。</p>
+    <div id="result" class="result">抽選ボタンを押してね</div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <button id="pickBtn" class="btn btn-pick">抽選する</button>
+
+      <div class="button-grid">
+        <button id="allInBtn" class="btn btn-green">全員入れる</button>
+        <button id="allOutBtn" class="btn btn-red">全員抜く</button>
+        <button id="reverseBtn" class="btn btn-gray">入れ替え</button>
+        <button id="resetBtn" class="btn btn-gray">履歴リセット</button>
+      </div>
+
+      <div class="button-grid">
+        <button id="cost3Btn" class="btn">Cost 3.0だけ</button>
+        <button id="cost25Btn" class="btn">Cost 2.5だけ</button>
+        <button id="cost2Btn" class="btn">Cost 2.0だけ</button>
+        <button id="cost15Btn" class="btn">Cost 1.5だけ</button>
+      </div>
+
+      <input id="searchBox" class="search" type="text" placeholder="キャラ名で検索">
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section id="cards" class="cards"></section>
+
+    <section class="history-box">
+      <h2>抽選履歴</h2>
+      <div id="history" class="history">なし</div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
