@@ -48,9 +48,7 @@ select {
 }
 
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  position: relative;
   padding: 16px 14px;
   text-align: center;
   background: var(--bg);
@@ -210,10 +208,35 @@ main {
   font-weight: 850;
 }
 
+.option-grid > label {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.option-grid > label select {
+  margin-top: 8px;
+}
+
+body.light .option-grid > label,
+body.light .check-card {
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
 label {
   color: var(--muted);
   font-size: 13px;
   font-weight: 800;
+}
+
+.option-grid > label {
+  color: var(--text);
 }
 
 input[type="radio"],
