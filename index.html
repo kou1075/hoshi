@@ -9,16 +9,13 @@
 <body>
 
 <header class="header">
-  <div class="header-top">
-    <div>
-      <h1>星の翼 ランダムキャラピック</h1>
-      <p>IN/OUT・お気に入り・2人抽選・Cost制限・履歴除外・キャラ追加編集対応</p>
-    </div>
-    <button id="themeBtn" class="btn small">テーマ切替</button>
-  </div>
+  <button id="themeBtn" class="theme-btn">☾</button>
+
+  <h1>星の翼 ランダムキャラピック</h1>
+  <p class="subtitle">キャラを押すと抽選対象の IN / OUT を切り替えできます。</p>
 
   <div class="result-box">
-    <div class="result-title">抽選結果</div>
+    <div class="result-label">抽選結果</div>
     <div id="resultText" class="result-text">抽選ボタンを押してね</div>
   </div>
 </header>
@@ -62,36 +59,19 @@
         </select>
       </label>
 
-      <label class="check">
-        <input type="checkbox" id="avoidHistory">
-        履歴10件を除外
-      </label>
-
-      <label class="check">
-        <input type="checkbox" id="noSamePair" checked>
-        2人抽選で同キャラ禁止
+      <label class="check-card">
+        <input type="checkbox" id="avoidRecent">
+        直近の履歴を避ける
       </label>
     </div>
 
     <div class="button-grid">
       <button id="allInBtn" class="btn green">全員入れる</button>
       <button id="allOutBtn" class="btn red">全員抜く</button>
-      <button id="reverseBtn" class="btn gray">IN/OUT入替</button>
-      <button id="favClearBtn" class="btn gray">★全解除</button>
-    </div>
-
-    <div class="button-grid">
-      <button id="cost3Btn" class="btn">Cost 3.0だけIN</button>
-      <button id="cost25Btn" class="btn">Cost 2.5だけIN</button>
-      <button id="cost2Btn" class="btn">Cost 2.0だけIN</button>
-      <button id="cost15Btn" class="btn">Cost 1.5だけIN</button>
-    </div>
-
-    <div class="button-grid">
-      <button id="historyResetBtn" class="btn gray">履歴リセット</button>
-      <button id="dataResetBtn" class="btn red">データ初期化</button>
-      <button id="exportBtn" class="btn gray">設定コピー</button>
-      <button id="importBtn" class="btn gray">設定読込</button>
+      <button id="cost3Btn" class="btn">Cost 3.0</button>
+      <button id="cost25Btn" class="btn">Cost 2.5</button>
+      <button id="cost2Btn" class="btn">Cost 2.0</button>
+      <button id="cost15Btn" class="btn">Cost 1.5</button>
     </div>
 
     <div class="search-grid">
@@ -114,29 +94,6 @@
     </div>
 
     <div id="status" class="status"></div>
-    <div id="costStats" class="cost-stats"></div>
-  </section>
-
-  <section class="panel">
-    <details>
-      <summary>キャラ追加・編集</summary>
-
-      <div class="add-grid">
-        <input id="charNameInput" type="text" placeholder="キャラ名">
-
-        <select id="charCostInput">
-          <option value="3.0">Cost 3.0</option>
-          <option value="2.5">Cost 2.5</option>
-          <option value="2.0">Cost 2.0</option>
-          <option value="1.5">Cost 1.5</option>
-        </select>
-
-        <button id="addCharBtn" class="btn green">追加 / 更新</button>
-        <button id="clearEditBtn" class="btn gray">入力クリア</button>
-      </div>
-
-      <p class="hint">カードの「編集」を押すとここに入ります。追加・編集したキャラはブラウザに保存されます。</p>
-    </details>
   </section>
 
   <section id="cards" class="cards"></section>
@@ -147,8 +104,6 @@
   </section>
 
 </main>
-
-<div id="toast" class="toast"></div>
 
 <script src="script.js"></script>
 </body>
