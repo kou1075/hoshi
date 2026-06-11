@@ -8,43 +8,148 @@
 </head>
 <body>
 
-  <header class="header">
-    <h1>星の翼 ランダムキャラピック</h1>
-    <p class="subtitle">キャラをクリックすると抽選対象の IN / OUT を切り替えできます。</p>
-    <div id="result" class="result">抽選ボタンを押してね</div>
-  </header>
+<header class="header">
+  <div class="header-top">
+    <div>
+      <h1>星の翼 ランダムキャラピック</h1>
+      <p>IN/OUT・お気に入り・2人抽選・Cost制限・履歴除外・キャラ追加編集対応</p>
+    </div>
+    <button id="themeBtn" class="btn small">テーマ切替</button>
+  </div>
 
-  <main>
-    <section class="panel">
-      <button id="pickBtn" class="btn btn-pick">抽選する</button>
+  <div class="result-box">
+    <div class="result-title">抽選結果</div>
+    <div id="resultText" class="result-text">抽選ボタンを押してね</div>
+  </div>
+</header>
 
-      <div class="button-grid">
-        <button id="allInBtn" class="btn btn-green">全員入れる</button>
-        <button id="allOutBtn" class="btn btn-red">全員抜く</button>
-        <button id="reverseBtn" class="btn btn-gray">入れ替え</button>
-        <button id="resetBtn" class="btn btn-gray">履歴リセット</button>
+<main>
+
+  <section class="panel">
+    <div class="mode-grid">
+      <label class="mode-card">
+        <input type="radio" name="pickMode" value="single" checked>
+        1人抽選
+      </label>
+
+      <label class="mode-card">
+        <input type="radio" name="pickMode" value="pair">
+        2人抽選
+      </label>
+    </div>
+
+    <button id="pickBtn" class="btn pick">抽選する</button>
+
+    <div class="option-grid">
+      <label>
+        抽選対象
+        <select id="poolMode">
+          <option value="enabled">INキャラ</option>
+          <option value="favorite">お気に入りだけ</option>
+          <option value="all">全キャラ</option>
+        </select>
+      </label>
+
+      <label>
+        2人抽選の合計Cost
+        <select id="costLimit">
+          <option value="none">制限なし</option>
+          <option value="4.0">4.0以下</option>
+          <option value="4.5">4.5以下</option>
+          <option value="5.0">5.0以下</option>
+          <option value="5.5">5.5以下</option>
+          <option value="6.0">6.0以下</option>
+        </select>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="avoidHistory">
+        履歴10件を除外
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="noSamePair" checked>
+        2人抽選で同キャラ禁止
+      </label>
+    </div>
+
+    <div class="button-grid">
+      <button id="allInBtn" class="btn green">全員入れる</button>
+      <button id="allOutBtn" class="btn red">全員抜く</button>
+      <button id="reverseBtn" class="btn gray">IN/OUT入替</button>
+      <button id="favClearBtn" class="btn gray">★全解除</button>
+    </div>
+
+    <div class="button-grid">
+      <button id="cost3Btn" class="btn">Cost 3.0だけIN</button>
+      <button id="cost25Btn" class="btn">Cost 2.5だけIN</button>
+      <button id="cost2Btn" class="btn">Cost 2.0だけIN</button>
+      <button id="cost15Btn" class="btn">Cost 1.5だけIN</button>
+    </div>
+
+    <div class="button-grid">
+      <button id="historyResetBtn" class="btn gray">履歴リセット</button>
+      <button id="dataResetBtn" class="btn red">データ初期化</button>
+      <button id="exportBtn" class="btn gray">設定コピー</button>
+      <button id="importBtn" class="btn gray">設定読込</button>
+    </div>
+
+    <div class="search-grid">
+      <input id="searchBox" type="text" placeholder="キャラ名で検索">
+
+      <select id="costFilter">
+        <option value="all">全Cost表示</option>
+        <option value="3.0">Cost 3.0</option>
+        <option value="2.5">Cost 2.5</option>
+        <option value="2.0">Cost 2.0</option>
+        <option value="1.5">Cost 1.5</option>
+      </select>
+
+      <select id="showFilter">
+        <option value="all">全表示</option>
+        <option value="in">INだけ</option>
+        <option value="out">OUTだけ</option>
+        <option value="favorite">お気に入りだけ</option>
+      </select>
+    </div>
+
+    <div id="status" class="status"></div>
+    <div id="costStats" class="cost-stats"></div>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>キャラ追加・編集</summary>
+
+      <div class="add-grid">
+        <input id="charNameInput" type="text" placeholder="キャラ名">
+
+        <select id="charCostInput">
+          <option value="3.0">Cost 3.0</option>
+          <option value="2.5">Cost 2.5</option>
+          <option value="2.0">Cost 2.0</option>
+          <option value="1.5">Cost 1.5</option>
+        </select>
+
+        <button id="addCharBtn" class="btn green">追加 / 更新</button>
+        <button id="clearEditBtn" class="btn gray">入力クリア</button>
       </div>
 
-      <div class="button-grid">
-        <button id="cost3Btn" class="btn">Cost 3.0だけ</button>
-        <button id="cost25Btn" class="btn">Cost 2.5だけ</button>
-        <button id="cost2Btn" class="btn">Cost 2.0だけ</button>
-        <button id="cost15Btn" class="btn">Cost 1.5だけ</button>
-      </div>
+      <p class="hint">カードの「編集」を押すとここに入ります。追加・編集したキャラはブラウザに保存されます。</p>
+    </details>
+  </section>
 
-      <input id="searchBox" class="search" type="text" placeholder="キャラ名で検索">
+  <section id="cards" class="cards"></section>
 
-      <div id="status" class="status"></div>
-    </section>
+  <section class="history-box">
+    <h2>抽選履歴</h2>
+    <div id="history" class="history">なし</div>
+  </section>
 
-    <section id="cards" class="cards"></section>
+</main>
 
-    <section class="history-box">
-      <h2>抽選履歴</h2>
-      <div id="history" class="history">なし</div>
-    </section>
-  </main>
+<div id="toast" class="toast"></div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
