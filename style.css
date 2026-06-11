@@ -2,43 +2,23 @@
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #0f172a;
-  --panel: rgba(30, 41, 59, 0.92);
-  --panel2: rgba(15, 23, 42, 0.92);
-  --text: #ffffff;
-  --muted: #cbd5e1;
-  --border: rgba(148, 163, 184, 0.28);
-  --blue: #2563eb;
-  --orange: #f97316;
-  --green: #22c55e;
-  --red: #ef4444;
-  --gray: #475569;
-  --cyan: #38bdf8;
-  --input: #f8fafc;
-  --inputText: #0f172a;
-}
-
-body.light {
-  --bg: #eef2ff;
-  --panel: rgba(255, 255, 255, 0.96);
-  --panel2: rgba(255, 255, 255, 0.96);
-  --text: #0f172a;
-  --muted: #475569;
-  --border: rgba(15, 23, 42, 0.16);
-  --input: #ffffff;
-  --inputText: #0f172a;
-}
-
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
     radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 30%),
     radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.16), transparent 30%),
-    var(--bg);
-  color: var(--text);
+    #0f172a;
+  color: #ffffff;
   min-height: 100vh;
+}
+
+body.light {
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.14), transparent 30%),
+    #eef2ff;
+  color: #0f172a;
 }
 
 button,
@@ -51,8 +31,13 @@ select {
   position: relative;
   padding: 16px 14px;
   text-align: center;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  background: #0f172a;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+body.light .header {
+  background: #eef2ff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.16);
 }
 
 .theme-btn {
@@ -61,13 +46,18 @@ select {
   right: 12px;
   width: 34px;
   height: 34px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 999px;
   background: transparent;
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 16px;
   cursor: pointer;
   opacity: 0.7;
+}
+
+body.light .theme-btn {
+  color: #475569;
+  border-color: #94a3b8;
 }
 
 .theme-btn:hover {
@@ -81,24 +71,36 @@ h1 {
 
 .subtitle {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 14px;
+}
+
+body.light .subtitle {
+  color: #475569;
 }
 
 .result-box {
   max-width: 900px;
   margin: 14px auto 0;
   padding: 15px;
-  border: 2px solid var(--cyan);
+  border: 2px solid #38bdf8;
   border-radius: 18px;
-  background: var(--panel2);
+  background: rgba(15, 23, 42, 0.92);
   box-shadow: 0 0 24px rgba(56, 189, 248, 0.16);
 }
 
+body.light .result-box {
+  background: #ffffff;
+}
+
 .result-label {
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 13px;
   font-weight: 800;
+}
+
+body.light .result-label {
+  color: #475569;
 }
 
 .result-text {
@@ -129,16 +131,22 @@ main {
   margin: 12px 0;
   padding: 14px;
   border-radius: 18px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+body.light .panel,
+body.light .history-box {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.16);
 }
 
 .btn {
   border: none;
   border-radius: 12px;
   padding: 13px 14px;
-  background: var(--blue);
-  color: white;
+  background: #2563eb;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 850;
   cursor: pointer;
@@ -157,7 +165,7 @@ main {
   width: 100%;
   margin: 10px 0;
   padding: 18px;
-  background: var(--orange);
+  background: #f97316;
   font-size: 24px;
 }
 
@@ -202,34 +210,13 @@ main {
   min-height: 52px;
   padding: 12px;
   border-radius: 12px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #ffffff;
   font-weight: 850;
 }
 
-/* 抽選対象・2人抽選の合計Costの外枠 */
-.option-grid > label {
-  display: block;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-/* 外枠の中のselect内枠：ダーク */
-.option-grid > label select {
-  margin-top: 8px;
-  border: 1px solid #64748b;
-  border-radius: 10px;
-  background: #0f172a;
-  color: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
-}
-
-/* ライト時の外枠 */
-body.light .option-grid > label,
+body.light .mode-card,
 body.light .check-card {
   background: #ffffff;
   border: 1px solid #94a3b8;
@@ -237,7 +224,33 @@ body.light .check-card {
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
-/* ライト時の内枠 */
+.option-grid > label {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.option-grid > label select {
+  margin-top: 8px;
+  border: 1px solid #64748b;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+}
+
+body.light .option-grid > label {
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
 body.light .option-grid > label select {
   margin-top: 8px;
   border: 1px solid #94a3b8;
@@ -248,13 +261,13 @@ body.light .option-grid > label select {
 }
 
 label {
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 13px;
   font-weight: 800;
 }
 
-.option-grid > label {
-  color: var(--text);
+body.light label {
+  color: #334155;
 }
 
 input[type="radio"],
@@ -269,8 +282,8 @@ select {
   padding: 13px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background: var(--input);
-  color: var(--inputText);
+  background: #f8fafc;
+  color: #0f172a;
   font-size: 15px;
 }
 
@@ -282,13 +295,17 @@ select {
 input:focus,
 select:focus {
   outline: none;
-  border-color: var(--cyan);
+  border-color: #38bdf8;
 }
 
 .status {
   margin-top: 10px;
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 14px;
+}
+
+body.light .status {
+  color: #475569;
 }
 
 .cards {
@@ -300,13 +317,18 @@ select:focus {
 .card {
   min-height: 128px;
   padding: 12px;
-  border: 2px solid var(--green);
+  border: 2px solid #22c55e;
   border-radius: 16px;
-  background: var(--panel);
-  color: var(--text);
+  background: rgba(30, 41, 59, 0.92);
+  color: #ffffff;
   user-select: none;
   cursor: pointer;
   transition: transform 0.08s ease, opacity 0.12s ease;
+}
+
+body.light .card {
+  background: #ffffff;
+  color: #0f172a;
 }
 
 .card:hover {
@@ -315,7 +337,7 @@ select:focus {
 
 .card.out {
   opacity: 0.42;
-  border-color: var(--red);
+  border-color: #ef4444;
 }
 
 .card-top {
@@ -343,9 +365,13 @@ select:focus {
 
 .cost {
   margin-top: 8px;
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 13px;
   font-weight: 800;
+}
+
+body.light .cost {
+  color: #475569;
 }
 
 .badge-row {
@@ -359,14 +385,14 @@ select:focus {
   display: inline-block;
   padding: 4px 9px;
   border-radius: 999px;
-  background: var(--green);
+  background: #22c55e;
   color: #052e16;
   font-size: 12px;
   font-weight: 950;
 }
 
-.card.out .badge.inout {
-  background: var(--red);
+.card.out .badge {
+  background: #ef4444;
   color: #450a0a;
 }
 
@@ -397,8 +423,12 @@ select:focus {
 }
 
 .history {
-  color: var(--muted);
+  color: #cbd5e1;
   line-height: 1.8;
+}
+
+body.light .history {
+  color: #475569;
 }
 
 .rolling {
