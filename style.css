@@ -208,6 +208,7 @@ main {
   font-weight: 850;
 }
 
+/* 抽選対象・2人抽選の合計Costの外枠 */
 .option-grid > label {
   display: block;
   padding: 12px;
@@ -217,16 +218,33 @@ main {
   color: var(--text);
 }
 
+/* 外枠の中のselect内枠：ダーク */
 .option-grid > label select {
   margin-top: 8px;
+  border: 1px solid #64748b;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
 }
 
+/* ライト時の外枠 */
 body.light .option-grid > label,
 body.light .check-card {
   background: #ffffff;
   border: 1px solid #94a3b8;
   color: #0f172a;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* ライト時の内枠 */
+body.light .option-grid > label select {
+  margin-top: 8px;
+  border: 1px solid #94a3b8;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.28);
 }
 
 label {
